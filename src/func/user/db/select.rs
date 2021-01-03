@@ -70,3 +70,16 @@ pub async fn select_user_connect() -> Vec<User> {
     }
     vec
 }
+
+pub async fn valid_token(token: String) -> bool {
+    let mut conn = connect().await;
+    if let Ok(e) = query("SELECT * FROM user WHERE token = $1").bind(token).fetch_one(&mut conn).await {
+        if !e.is_empty() {
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
