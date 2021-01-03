@@ -1,10 +1,9 @@
 use serde::Deserialize;
 
-#[derive(Clone,Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct UserPassword {
-
     name: String,
-    password: String
+    password: String,
 }
 
 impl UserPassword {

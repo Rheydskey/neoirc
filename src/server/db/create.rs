@@ -1,5 +1,5 @@
 use async_std::stream::StreamExt;
-use sqlx::{Sqlite, SqliteConnection, Connection};
+use sqlx::{Connection, Sqlite, SqliteConnection};
 use std::path::PathBuf;
 
 use crate::func::user::db::create::create_user_db;
@@ -12,7 +12,6 @@ pub async fn create_database() {
     create_user_db().await;
 }
 
-
 pub async fn read_dir_to_vec(p: PathBuf) -> Vec<String> {
     let mut result: Vec<String> = Vec::new();
     let mut ee = async_std::fs::read_dir(p).await.expect("err");
@@ -20,7 +19,7 @@ pub async fn read_dir_to_vec(p: PathBuf) -> Vec<String> {
         match some {
             Ok(e) => {
                 result.push(String::from(e.file_name().to_str().expect("err")));
-            },
+            }
             Err(_) => {
                 panic!()
             }

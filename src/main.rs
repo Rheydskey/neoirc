@@ -1,9 +1,9 @@
 mod server;
 
-use actix_web::{web, App, HttpRequest, HttpServer, Responder};
-use func::user::{user::{create_user, delete_user}};
+use crate::func::user::user::{list_user, login_user};
 use crate::server::db::create::create_database;
-use crate::func::user::user::login_user;
+use actix_web::{web, App, HttpRequest, HttpServer, Responder};
+use func::user::user::{create_user, delete_user};
 
 mod func;
 
@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/login", web::post().to(login_user))
                     .route("/delete", web::post().to(delete_user))
                     .route("/update", web::get().to(default))
+                    .route("/list", web::get().to(list_user))
                     .default_service(web::get().to(default)),
             )
             .service(

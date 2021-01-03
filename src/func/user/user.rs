@@ -1,14 +1,14 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, web};
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use serde::Deserialize;
 
 use super::db::{insert::insert_user, model::UserPassword, select::select_user_by_name};
-use crate::func::user::db::select::select_user_by_name_and_password;
 use crate::func::hash_password;
-use rand::Rng;
-use crate::func::user::db::update::update_token;
 use crate::func::user::db::delete::delete_user_by_token;
+use crate::func::user::db::select::{select_user_by_name_and_password, select_user_connect};
+use crate::func::user::db::update::update_token;
+use rand::Rng;
 
-#[derive(Clone,Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct User {
     id: i32,
     name: String,
@@ -54,13 +54,12 @@ impl User {
             })
             .collect()
     }
-
 }
 
 pub async fn create_user(req: HttpRequest, json: web::Json<UserPassword>) -> HttpResponse {
     let user = select_user_by_name(json.0.get_name()).await;
     if !user.get_name().is_empty() {
-        return HttpResponse::Ok().body("User already Exist")
+        return HttpResponse::Ok().body("User already Exist");
     }
     let hash = hash_password(json.0.get_password().clone());
     insert_user(json.0.get_name(), hash).await;
@@ -82,12 +81,18 @@ pub async fn select_user(req: HttpRequest, json: web::Json<UserPassword>) -> Htt
 }
 pub async fn login_user(req: HttpRequest, json: web::Json<UserPassword>) -> HttpResponse {
     let hash = hash_password(json.0.get_password().clone());
-    let user = select_user_by_name_and_password(json.0.get_name(), hash).await.expect("Error");
+    let user = select_user_by_name_and_password(json.0.get_name(), hash)
+        .await
+        .expect("Error");
     let token = User::generate_token();
-    if let Ok(_)  = update_token(token.clone(), user.get_id()).await {
+    if let Ok(_) = update_token(token.clone(), user.get_id()).await {
         HttpResponse::Ok().body(token.clone())
     } else {
         HttpResponse::Ok().body(r#"{"result":"false", "message":"error on token update"}"#)
     }
+}
 
+pub async fn list_user() -> HttpResponse {
+    let user = select_user_connect().await;
+    HttpResponse::Ok().body(format!("{:?}", user))
 }
