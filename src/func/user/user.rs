@@ -4,9 +4,10 @@ use serde::Deserialize;
 use super::db::{insert::insert_user, model::UserPassword, select::select_user_by_name};
 use crate::func::hash_password;
 use crate::func::user::db::delete::delete_user_by_token;
-use crate::func::user::db::select::{select_user_by_name_and_password, select_user_connect};
-use crate::func::user::db::update::update_token;
+use crate::func::user::db::select::{select_user_by_name_and_password, select_user_connect, valid_token};
+use crate::func::user::db::update::{update_token, update_connect_status_by_token, remove_token};
 use rand::Rng;
+use actix_web::error::PayloadError::Http2Payload;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct User {
@@ -86,13 +87,30 @@ pub async fn login_user(req: HttpRequest, json: web::Json<UserPassword>) -> Http
         .expect("Error");
     let token = User::generate_token();
     if let Ok(_) = update_token(token.clone(), user.get_id()).await {
+        update_connect_status_by_token(true, token.clone()).await;
         HttpResponse::Ok().body(token.clone())
     } else {
         HttpResponse::Ok().body(r#"{"result":"false", "message":"error on token update"}"#)
     }
 }
 
+
+pub async fn logout_user(req: HttpRequest) -> HttpResponse {
+    if let Some(e) = req.headers().get("token") {
+        let token = e.to_str().expect("Error").to_string();
+        if valid_token(token.clone()).await {
+            update_connect_status_by_token(false, token.clone()).await;
+            remove_token(token.clone()).await;
+            HttpResponse::Ok().body("Logout succesfully")
+        } else {
+            HttpResponse::Ok().body("bad token")
+        }
+    } else {
+        HttpResponse::Ok().body("No token")
+    }
+}
 pub async fn list_user() -> HttpResponse {
     let user = select_user_connect().await;
     HttpResponse::Ok().body(format!("{:?}", user))
 }
+

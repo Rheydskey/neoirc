@@ -1,6 +1,6 @@
 mod server;
 
-use crate::func::user::user::{list_user, login_user};
+use crate::func::user::user::{list_user, login_user, logout_user};
 use crate::server::db::create::create_database;
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use func::user::user::{create_user, delete_user};
@@ -25,6 +25,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/delete", web::post().to(delete_user))
                     .route("/update", web::get().to(default))
                     .route("/list", web::get().to(list_user))
+                    .route("/logout", web::get().to(logout_user))
                     .default_service(web::get().to(default)),
             )
             .service(
