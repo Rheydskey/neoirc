@@ -6,6 +6,7 @@ use crate::func::user::db::select::select_user_by_name_and_password;
 use crate::func::hash_password;
 use rand::Rng;
 use crate::func::user::db::update::update_token;
+use crate::func::user::db::delete::delete_user_by_token;
 
 #[derive(Clone,Deserialize, Debug)]
 pub struct User {
@@ -67,8 +68,12 @@ pub async fn create_user(req: HttpRequest, json: web::Json<UserPassword>) -> Htt
 }
 
 pub async fn delete_user(req: HttpRequest, json: web::Json<UserPassword>) -> HttpResponse {
-    insert_user(json.0.get_name(),json.0.get_password()).await;
-    HttpResponse::Ok().body("Ok working")
+    if let Some(e) = req.headers().get("Token") {
+        delete_user_by_token(e.to_str().unwrap_or(&"").to_string()).await;
+        HttpResponse::Ok().body("Ok working")
+    } else {
+        HttpResponse::Ok().body("Hey Where is the token")
+    }
 }
 
 pub async fn select_user(req: HttpRequest, json: web::Json<UserPassword>) -> HttpResponse {
