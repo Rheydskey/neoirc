@@ -7,7 +7,7 @@ use crate::func::user::user::login_user;
 
 mod func;
 
-async fn greet(req: HttpRequest) -> impl Responder {
+async fn default(req: HttpRequest) -> impl Responder {
     let name = req.match_info().get("name").unwrap_or("World");
     format!("Hello {}!", &name)
 }
@@ -23,22 +23,22 @@ async fn main() -> std::io::Result<()> {
                     .route("/create", web::post().to(create_user))
                     .route("/login", web::post().to(login_user))
                     .route("/delete", web::post().to(delete_user))
-                    .route("/update", web::get().to(greet))
-                    .default_service(web::get().to(greet)),
+                    .route("/update", web::get().to(default))
+                    .default_service(web::get().to(default)),
             )
             .service(
                 web::scope("/message")
-                    .route("/send", web::get().to(greet))
-                    .route("/delete/{id}", web::get().to(greet))
-                    .route("/update/{id}", web::get().to(greet)),
+                    .route("/send", web::get().to(default))
+                    .route("/delete/{id}", web::get().to(default))
+                    .route("/update/{id}", web::get().to(default)),
             )
             .service(
                 web::scope("/channel")
-                    .route("/add/{id}", web::get().to(greet))
-                    .route("/update/{id}", web::get().to(greet))
-                    .route("/delete/{id}", web::get().to(greet)),
+                    .route("/add/{id}", web::get().to(default))
+                    .route("/update/{id}", web::get().to(default))
+                    .route("/delete/{id}", web::get().to(default)),
             )
-            .default_service(web::get().to(greet))
+            .default_service(web::get().to(default))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
